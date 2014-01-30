@@ -110,6 +110,27 @@ foreach ($requests as $request) {
 }
 ```
 
+Filter log entries
+------------------
+
+```php
+$gavroche->setLogReader(new Gavroche\LogReader(array(
+    'ip',
+    null,
+    Gavroche\LogReader::PARAM_REQUEST,
+    'code',
+    Gavroche\LogReader::PARAM_BODY,
+), '|||'));
+
+$requests = $gavroche->fromAccessLog(__DIR__ . '/../logs/access/full-access.log', array(
+    'ip'   => '127.0.0.1',
+    'code' => '200',
+    'request' => function ($value) {
+        return substr($value, 0, 4) === 'POST';
+    }
+));
+```
+
 
 Visit predefined records
 ------------------------

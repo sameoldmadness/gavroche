@@ -68,7 +68,7 @@ class Application
 	public function grabSession(array $credentials)
 	{
 		foreach ($credentials as $record) {
-			$client = new SoapClient(
+			$client = new \SoapClient(
 				"http://$this->host/$this->instance/soap.php?wsdl",
 				array('cache_wsdl' => WSDL_CACHE_NONE)
 			);
@@ -81,16 +81,34 @@ class Application
 		}
 	}
 
-	public function fromAccessLog($filename) {
-		return array_filter(array_map(function ($request) {
+	public function fromAccessLog($filename, array $filter = array()) {
+		$that = $this;
+
+		return array_filter(array_map(function ($request) use ($that, $filter) {
+			foreach ($filter as $key => $value) {
+				if (!isset($request[$key])) {
+					return;
+				}
+
+				if (is_callable($value)) {
+					if (!$value($request[$key])) {
+						return;
+					}
+				} else {
+					if ($request[$key] !== $value) {
+						return;
+					}
+				}
+			}
+
 			if (preg_match('/(GET|POST) (\S+) HTTP/', $request[LogReader::PARAM_REQUEST], $matches)) {
 				list(, $type, $path) = $matches;
 
 				switch ($type) {
 					case 'GET':
-						return $this->get($path);
+						return $that->get($path, array('instance' => null, ));
 					case 'POST':
-						return $this->post($path, array('data' => $request[LogReader::PARAM_BODY]));
+						return $that->post($path, array('instance' => null, 'data' => $request[LogReader::PARAM_BODY]));
 				}
 			}
 		}, $this->logReader->parse(file_get_contents($filename))));

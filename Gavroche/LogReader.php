@@ -16,11 +16,14 @@ class LogReader
 	}
 
 	public function parse($content) {
-		$rows = array_map(function ($row) {
-			$row = explode($this->glue, trim($row));
+		$glue   = $this->glue;
+		$schema = $this->schema;
 
-			return array_combine($this->schema, $row);
-		}, explode("\n", trim($content)));
+		$rows = array_filter(array_map(function ($row) use ($glue, $schema) {
+			$row = explode($glue, trim($row));
+
+			return count($schema) === count($row) ? array_combine($schema, $row) : null;
+		}, explode("\n", trim($content))));
 
 		return $rows;
 	}

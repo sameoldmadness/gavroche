@@ -47,7 +47,7 @@ class Request
 
 	protected function getConnection()
 	{
-		return strtoupper($this->type) . " /$this->instance/$this->path HTTP/1.1\r\n";
+		return strtoupper($this->type) . ' ' . ($this->instance ? "/$this->instance" : '') . '/' . ltrim($this->path, '/') . " HTTP/1.1\r\n";
 	}
 
 	protected function getHeaders()
