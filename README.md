@@ -8,8 +8,7 @@ Bootstrap
 ---------
 
 ```php
-require_once 'Request.php';
-require_once 'Gavroche.php';
+require_once 'autoload.php';
 
 $gavroche = new Gavroche\Application(
     'localhost',    // host
