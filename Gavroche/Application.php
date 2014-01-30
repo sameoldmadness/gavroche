@@ -1,6 +1,8 @@
 <?php
 
-class Gavroche
+namespace Gavroche;
+
+class Application
 {
 	private $host;
 	private $instance;
@@ -30,6 +32,9 @@ class Gavroche
 				$params['type'] = $name;
 
 				return $this->request($path, $params, $label);
+			default:
+				throw new \Exception("Unknown method '$name'");
+				
 		}
 	}
 
@@ -50,7 +55,6 @@ class Gavroche
 		}
 
 		$request = Request::create($params);
-		$label .= '.' . $params['host'];
 
 		return strlen($request) . $label . "\n" . $request;
 	}
@@ -71,45 +75,26 @@ class Gavroche
 		}
 	}
 
-	public function fromAccessLogContent($log, $limit = -1) {
-		$res = array();
+	public function fromAccessLog($filename) {
+		return array_filter(array_map(function ($request) {
+			if (preg_match('/(GET|POST) (\S+) HTTP/', $request[LogReader::PARAM_REQUEST], $matches)) {
+				list(, $type, $path) = $matches;
 
-		foreach ($this->parseAccessLog($log) as $path) {
-			if ($limit !== -1) {
-				if ($limit === 0) {
-					break;
+				switch ($type) {
+					case 'GET':
+						return $this->get($path);
+					case 'POST':
+						return $this->post($path, array('data' => $request[LogReader::PARAM_BODY]));
 				}
-
-				$limit -=1;
 			}
-
-			$res[] = $this->get($path);
-		}
-
-		return $res;
-	}
-
-	public function fromaccessLog($filename, $limit = -1) {
-		return $this->fromAccessLogContent(file_get_contents($filename), $limit);
-	}
-
-	protected function parseAccessLog($log) {
-		$rows = explode("\n", trim($log));
-		$res = array();
-
-		foreach ($rows as $row) {
-			$row = trim($row);
-			
-			if (preg_match('/GET (\S+) HTTP/', $row, $matches)) {
-				$res[] = $matches[1];
-			}
-
-		}
-
-		return $res;
+		}, $this->logReader->parse(file_get_contents($filename))));
 	}
 
 	public function getRandomSession() {
-		return $this->sessions[array_rand($this->sessions)];
+		return empty($this->sessions) ? '' : $this->sessions[array_rand($this->sessions)];
+	}
+
+	public function setLogReader(LogReader $logReader) {
+		$this->logReader = $logReader;
 	}
 }

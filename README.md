@@ -11,7 +11,7 @@ Bootstrap
 require_once 'Request.php';
 require_once 'Gavroche.php';
 
-$gavroche = new Gavroche(
+$gavroche = new Gavroche\Application(
     'localhost',    // host
     'sugarcrm_dev'  // path
 );
@@ -94,35 +94,17 @@ echo $gavroche->post('index.php?action=Login&module=Users', array(
 ```
 
 
-Create multiple requests from Apache's access.log content
+Create multiple requests from log file
 ---------------------------------------------------------
 
 ```php
-$requests = $gavroche->fromAccessLogContent('
-    127.0.0.1 - - [23/Dec/2013:06:32:26 +0000] "GET /sugarcrm_dev/install/processing.gif HTTP/1.1" 304 187 "http://127.0.0.1/sugarcrm_dev/install.php" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.$
-    127.0.0.1 - - [23/Dec/2013:06:32:26 +0000] "POST /sugarcrm_dev/install.php HTTP/1.1" 200 1755 "http://127.0.0.1/sugarcrm_dev/install.php" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63$
-    127.0.0.1 - - [23/Dec/2013:06:32:27 +0000] "GET /sugarcrm_dev/include/images/sugarcrm_login.png HTTP/1.1" 304 186 "http://127.0.0.1/sugarcrm_dev/install.php" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)$
-    127.0.0.1 - - [23/Dec/2013:06:34:29 +0000] "GET /sugarcrm_dev/install/processing.gif HTTP/1.1" 304 187 "http://127.0.0.1/sugarcrm_dev/install.php" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.$
-    127.0.0.1 - - [23/Dec/2013:06:34:29 +0000] "POST /sugarcrm_dev/install.php HTTP/1.1" 200 436 "http://127.0.0.1/sugarcrm_dev/install.php" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 $
-    127.0.0.1 - - [23/Dec/2013:06:34:32 +0000] "POST /sugarcrm_dev/install.php HTTP/1.1" 200 1520 "http://127.0.0.1/sugarcrm_dev/install.php" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63$
-    127.0.0.1 - - [23/Dec/2013:06:34:42 +0000] "GET /sugarcrm_dev/install/install.css HTTP/1.1" 304 209 "http://127.0.0.1/sugarcrm_dev/install.php" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1$
-    127.0.0.1 - - [23/Dec/2013:06:34:43 +0000] "GET /sugarcrm_dev/include/images/sugar_md_open.png HTTP/1.1" 304 187 "http://127.0.0.1/s
-');
+$gavroche->setLogReader(new LogReader(array(
+    null,                     // first column
+    LogReader::PARAM_REQUEST, // second column
+    LogReader::PARAM_BODY,    // third column
+), '|||'));                   // glue
 
-foreach ($requests as $request) {
-    echo $request;
-}
-```
-
-
-Or from access.log location
----------------------------
-
-```php
-$requests = $gavroche->fromAccessLog(
-    '/var/log/apache2/access.log',
-    5 // optional limit
-);
+$requests = $gavroche->fromAccessLog('/var/log/nginx/access.log');
 
 foreach ($requests as $request) {
     echo $request;

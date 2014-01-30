@@ -1,5 +1,7 @@
 <?php
 
+namespace Gavroche;
+
 class Request
 {
 	protected $type;
@@ -19,7 +21,7 @@ class Request
 		$this->headers['User-Agent'] = 'yandex-tank/1.1.1';
 		$this->headers['Host'] = $params['host'];
 		$this->headers['Connection'] = 'Close';
-		if (isset($params['session'])) {
+		if (!empty($params['session'])) {
 			$this->headers['Cookie'] = "PHPSESSID={$params['session']}";
 		}
 
