@@ -38,7 +38,7 @@ class Application
 		}
 	}
 
-	public function request($path, array $params, $label = '')
+	public function request($path, array $params, $label = null)
 	{
 		$params['path'] = $path;
 
@@ -56,7 +56,13 @@ class Application
 
 		$request = Request::create($params);
 
-		return strlen($request) . $label . "\n" . $request;
+		$header = strlen($request);
+
+		if ($label) {
+			$header .= ' ' . $label;
+		}
+
+		return $header . "\n" . $request;
 	}
 
 	public function grabSession(array $credentials)
