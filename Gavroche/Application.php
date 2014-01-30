@@ -54,6 +54,7 @@ class Application
 			$params['session'] = $this->getRandomSession();
 		}
 
+
 		$request = Request::create($params);
 
 		$header = strlen($request);
@@ -106,9 +107,9 @@ class Application
 
 				switch ($type) {
 					case 'GET':
-						return $that->get($path, array('instance' => null, ));
+						return $that->get($path, array('instance' => ''));
 					case 'POST':
-						return $that->post($path, array('instance' => null, 'data' => $request[LogReader::PARAM_BODY]));
+						return $that->post($path, array('instance' => '', 'data' => $request[LogReader::PARAM_BODY]));
 				}
 			}
 		}, $this->logReader->parse(file_get_contents($filename))));

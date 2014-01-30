@@ -7,8 +7,8 @@ class LogReader
 	const PARAM_REQUEST = 'request';
 	const PARAM_BODY    = 'body';
 
-	protected $glue;
-	protected $schema;
+	public $glue;
+	public $schema;
 
 	public function __construct(array $schema, $glue = ' ') {
 		$this->schema = $schema;
@@ -16,15 +16,23 @@ class LogReader
 	}
 
 	public function parse($content) {
-		$glue   = $this->glue;
-		$schema = $this->schema;
+		$that = $this;
 
-		$rows = array_filter(array_map(function ($row) use ($glue, $schema) {
-			$row = explode($glue, trim($row));
+		$rows = array_filter(array_map(function ($row) use ($that) {
+			$row = explode($that->glue, trim($that->decodeJavascriptEscapeSequences($row)));
 
-			return count($schema) === count($row) ? array_combine($schema, $row) : null;
+			return count($that->schema) === count($row) ? array_combine($that->schema, $row) : null;
 		}, explode("\n", trim($content))));
 
 		return $rows;
+	}
+
+	public function decodeJavascriptEscapeSequences($string)
+	{
+		return preg_replace_callback(
+			"/\\\\x([0-9a-d]{2})/i",
+			function ($a) { return chr(hexdec($a[1])); },
+			$string
+		);
 	}
 }
